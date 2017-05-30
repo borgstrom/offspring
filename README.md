@@ -1,5 +1,7 @@
 # Offspring
 
+![travis](https://img.shields.io/travis/borgstrom/offspring.svg) ![codecov](https://img.shields.io/codecov/borgstrom/offspring.svg)
+
 This is a collection of objects and patterns for working with processes in Python using the multiprocessing library.
 
 The main idea is that you express your unit of work as a simple method on an object and then when that object is
