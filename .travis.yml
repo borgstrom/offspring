@@ -16,6 +16,7 @@ install:
   - pip install -e .
 
 script:
+  - flake8 src/ tests/
   - py.test -v --cov=./src tests/
 
 after_success:

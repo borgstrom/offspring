@@ -53,9 +53,9 @@ def test_terminate_on_shutdown():
 def test_atexit():
     class MyProcess(Subprocess):
         WAIT_FOR_CHILD = True
+
         def run(self):
             time.sleep(0.5)
-
 
     proc = MyProcess()
     assert proc.process.is_alive()
