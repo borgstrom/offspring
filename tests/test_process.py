@@ -19,7 +19,7 @@ def test_subprocess_basic():
     assert not proc.process.is_alive()
 
 
-def test_wait_for_child_start():
+def test_wait_for_child():
     class MyProcess(Subprocess):
         WAIT_FOR_CHILD = True
 
@@ -30,6 +30,20 @@ def test_wait_for_child_start():
     assert proc.process.is_alive()
     proc.wait()
     assert not proc.process.is_alive()
+
+
+def test_terminate_on_shutdown():
+    class MyProcess(Subprocess):
+        TERMINATE_ON_SHUTDOWN = False
+
+        def run(self):
+            time.sleep(0.5)
+
+
+    proc = MyProcess()
+    start = time.time()
+    proc.shutdown()
+    assert time.time() - start >= 0.5
 
 
 def test_loop():

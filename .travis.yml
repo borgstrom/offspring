@@ -12,7 +12,7 @@ python:
   - pypy
 
 install:
-  - pip install codecov pytest pytest-mock
+  - pip install --upgrade codecov pytest pytest-mock
   - pip install -e .
 
 script:
