@@ -69,7 +69,7 @@ Each `Subprocess` object has a `.process` attribute that is the `multiprocessing
 If you need to wait for your child process you can call `.wait` on your `Subprocess` object.
 
 
-### `WAIT_FOR_CHILD_START`
+### `WAIT_FOR_CHILD`
 
 If set to `True` on your `Subprocess` class then a `Pipe` will be used to block the parent process until the child has
 started.  This is useful when you want to ensure that your `Subprocess` object is started and `.run` is called even if
@@ -77,7 +77,7 @@ the parent process exits quickly.
 
 ```python
 class MyTask(Subprocess):
-    WAIT_FOR_CHILD_START = True
+    WAIT_FOR_CHILD = True
 
     def run(self):
         print("This will always print")
@@ -89,16 +89,16 @@ The `SubprocessLoop` class does this to ensure that your object has `begin` & `e
 a TERM signal received during startup will prevent the loop from every actually completing other than `begin` & `end`).
 
 
-### `TERMINATE_ON_PARENT_FINISH`
+### `TERMINATE_ON_SHUTDOWN`
 
-By default when the parent process terminates it will send a TERM signal to all of its children.  You can prevent this
-by setting `TERMINATE_ON_PARENT_FINISH` to `False` in your `Subprocess` class.
+If set to `False` then when `.shutdown` is called on a `Subprocess` object the child process **will not** be terminated
+before being joined.  This means that the parent will block until the child completes the `.run` function.
 
 ```python
 import time
 
 class MyTask(Subprocess):
-    TERMINATE_ON_PARENT_FINISH = False
+    TERMINATE_ON_SHUTDOWN = False
 
     def run(self):
         time.sleep(2)

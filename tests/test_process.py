@@ -21,7 +21,7 @@ def test_subprocess_basic():
 
 def test_wait_for_child_start():
     class MyProcess(Subprocess):
-        WAIT_FOR_CHILD_START = True
+        WAIT_FOR_CHILD = True
 
         def run(self):
             time.sleep(0.25)

@@ -19,8 +19,8 @@ class Subprocess(object):
     """
     _INSTANCES = None
 
-    WAIT_FOR_CHILD_START = False
-    TERMINATE_ON_PARENT_FINISH = True
+    WAIT_FOR_CHILD = False
+    TERMINATE_ON_SHUTDOWN = True
 
     def __new__(cls, *args, **kwargs):
         obj = super(Subprocess, cls).__new__(cls)
@@ -37,7 +37,7 @@ class Subprocess(object):
         self.start()
 
     def start(self):
-        if self.WAIT_FOR_CHILD_START:
+        if self.WAIT_FOR_CHILD:
             # we use a pipe to confirm that the child has started up before we move on
             def bootstrap(writer):
                 writer.send(True)
@@ -76,7 +76,8 @@ class Subprocess(object):
     def shutdown(self):
         if self.process:
             log.debug("Shutting down %s", self)
-            self.process.terminate()
+            if self.TERMINATE_ON_SHUTDOWN:
+                self.process.terminate()
             self.process.join()
 
     def run(self):
@@ -98,7 +99,7 @@ class SubprocessLoop(Subprocess):
 
     The end() is called when it ends, regardless of how it ends.
     """
-    WAIT_FOR_CHILD_START = True
+    WAIT_FOR_CHILD = True
 
     def signal_handler(self, signum, frame):
         """Handle signals within our child process to terminate the main loop"""
