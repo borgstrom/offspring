@@ -1,6 +1,10 @@
 import multiprocessing
-import Queue
 import time
+
+try:
+    from Queue import Empty
+except ImportError:
+    from queue import Empty
 
 import pytest
 
@@ -64,17 +68,17 @@ def test_loop():
     loop = MyLoop(q)
     assert(q.get()) == 1
 
-    with pytest.raises(Queue.Empty):
+    with pytest.raises(Empty):
         q.get(block=True, timeout=0.05)
 
     assert(q.get()) == 2
 
-    with pytest.raises(Queue.Empty):
+    with pytest.raises(Empty):
         q.get(block=True, timeout=0.1)
 
     assert(q.get()) == 3
 
-    with pytest.raises(Queue.Empty):
+    with pytest.raises(Empty):
         q.get(block=True, timeout=0.2)
 
     assert(q.get()) == 4
