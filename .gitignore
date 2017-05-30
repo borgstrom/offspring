@@ -1,9 +1,7 @@
 .*.sw[op]
-
 *.pyc
 
-/build
-
-/.cache
-
+/build/
+/dist/
+/.cache/
 *.egg-info/
