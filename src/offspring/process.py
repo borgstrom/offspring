@@ -23,9 +23,7 @@ class Subprocess(object):
     TERMINATE_ON_PARENT_FINISH = True
 
     def __new__(cls, *args, **kwargs):
-        obj = super(Subprocess, cls).__new__(cls, *args, **kwargs)
-
-        obj.started = None
+        obj = super(Subprocess, cls).__new__(cls)
         obj.process = None
 
         try:
@@ -33,28 +31,30 @@ class Subprocess(object):
         except AttributeError:
             cls._INSTANCES = [obj]
 
-        # we do not return an instance since we want to be responsible for the init code
-        # we must call __init__ manually, so we call the unbound method on our class and pass our obj & args in
-        cls.__init__(obj, *args, **kwargs)
+        return obj
 
-        if cls.WAIT_FOR_CHILD_START:
+    def __init__(self):
+        self.start()
+
+    def start(self):
+        if self.WAIT_FOR_CHILD_START:
             # we use a pipe to confirm that the child has started up before we move on
-            def bootstrap(obj, writer):
+            def bootstrap(writer):
                 writer.send(True)
-                obj.run()
+                self.run()
 
-            startup_reader, startup_writer = multiprocessing.Pipe(False)
-            obj.process = multiprocessing.Process(target=bootstrap, args=(obj, startup_writer,))
-            obj.process.start()
+            startup_reader, startup_writer = multiprocessing.Pipe(duplex=False)
+            self.process = multiprocessing.Process(target=bootstrap, args=(startup_writer,))
+            self.process.start()
 
             try:
                 startup_reader.recv()
             except EOFError:
-                log.error("Failed to start subprocess for %s", obj)
+                log.error("Failed to start subprocess for %s", self)
                 raise
         else:
-            obj.process = multiprocessing.Process(target=obj.run)
-            obj.process.start()
+            self.process = multiprocessing.Process(target=self.run)
+            self.process.start()
 
     @classmethod
     def atexit(cls):

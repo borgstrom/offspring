@@ -1,0 +1,22 @@
+language: python
+sudo: false
+
+branches:
+  only:
+    - master
+
+python:
+  - 2.7
+  - 3.5
+  - 3.6
+  - pypy
+
+install:
+  - pip install codecov pytest pytest-mock
+  - pip install -e .
+
+script:
+  - py.test -v tests/
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
