@@ -29,20 +29,21 @@ Run something once
 
 .. code-block:: python
 
-	from offspring import Subprocess
+    from offspring import Subprocess
 
 
-	class MyTask(Subprocess):
-		def __init__(self, arg1):
-			# this is run in the parent process and is used to prepare your object
-			self.arg = arg
+    class MyTask(Subprocess):
+        def __init__(self, arg1):
+            # this is run in the parent process and is used to prepare your object
+            self.arg = arg
+            self.start()
 
-		def run(self):
-			# this will be run in the child process and completes your work
-			# ...
+        def run(self):
+            # this will be run in the child process and completes your work
+            # ...
 
 
-	MyTask('this is arg1').wait()
+    MyTask('this is arg1').wait()
 
 
 Run in a loop
@@ -50,26 +51,27 @@ Run in a loop
 
 .. code-block:: python
 
-	from offspring import SubprocessLoop
+    from offspring import SubprocessLoop
 
 
-	class MyTask(SubprocessLoop):
-		def __init__(self, arg1):
-			# this is run in the parent process and is used to prepare your object
-			self.arg = arg
+    class MyTask(SubprocessLoop):
+        def __init__(self, arg1):
+            # this is run in the parent process and is used to prepare your object
+            self.arg = arg
+            self.start()
 
-		def begin(self):
-			# called at the start of the loop in your child process
+        def begin(self):
+            # called at the start of the loop in your child process
 
-		def loop(self):
-			# called each loop iteration in your your child process
-			# it should return a sleep duration until the next loop, or False to stop the loop
+        def loop(self):
+            # called each loop iteration in your your child process
+            # it should return a sleep duration until the next loop, or False to stop the loop
 
-		def end(self):
-			# called at the end of the loop in your child process
+        def end(self):
+            # called at the end of the loop in your child process
 
 
-	MyTask('this is arg1').wait()
+    MyTask('this is arg1').wait()
 
 
 Implementation details
@@ -81,14 +83,24 @@ Implementation details
 Each ``Subprocess`` object has a ``.process`` attribute that is the ``multiprocessing.Process`` object.
 
 
+``.start``
+~~~~~~~~~~
+
+Creates the subprocess.  If you do not customize your ``__init__`` method then you do not need to explicitly call
+``.start``.  If you do remember to call ``.start`` at the end of it.
+
+
 ``.wait``
 ~~~~~~~~~
 
-If you need to wait for your child process you can call ``.wait`` on your ``Subprocess`` object.
+If you need to wait for your child process you can call ``.wait`` on your ``Subprocess`` object.  This is just a
+shortcut to ``.join`` on the ``multiprocessing.Process`` object.
 
 
 ``WAIT_FOR_CHILD``
 ~~~~~~~~~~~~~~~~~~
+
+Defaults to ``False``.
 
 If set to ``True`` on your ``Subprocess`` class then a ``Pipe`` will be used to block the parent process until the child
 has started.  This is useful when you want to ensure that your ``Subprocess`` object is started and ``.run`` is called
@@ -96,13 +108,13 @@ even if the parent process exits quickly.
 
 .. code-block:: python
 
-	class MyTask(Subprocess):
-		WAIT_FOR_CHILD = True
+    class MyTask(Subprocess):
+        WAIT_FOR_CHILD = True
 
-		def run(self):
-			print("This will always print")
+        def run(self):
+            print("This will always print")
 
-	MyTask().wait()
+    MyTask()
 
 The ``SubprocessLoop`` class does this to ensure that your object has ``begin`` & ``end`` called (``loop`` may not be
 called as a TERM signal received during startup will prevent the loop from every actually completing other than
@@ -112,18 +124,19 @@ called as a TERM signal received during startup will prevent the loop from every
 ``TERMINATE_ON_SHUTDOWN``
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Defaults to ``True``.
+
 If set to ``False`` then when ``.shutdown`` is called on a ``Subprocess`` object the child process **will not** be
 terminated before being joined.  This means that the parent will block until the child completes the ``.run`` function.
 
 .. code-block:: python
 
-	import time
+    import time
 
-	class MyTask(Subprocess):
-		TERMINATE_ON_SHUTDOWN = False
+    class MyTask(Subprocess):
+        TERMINATE_ON_SHUTDOWN = False
 
-		def run(self):
-			time.sleep(2)
+        def run(self):
+            time.sleep(2)
 
-	# Note that we do not call .wait on the task here since we will automatically wait for the child
-	MyTask()
+    MyTask()
