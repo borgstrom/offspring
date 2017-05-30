@@ -15,5 +15,7 @@ setup(
     author='Evan Borgstrom',
     author_email='evan.borgstrom@gmail.com',
     license='Apache 2',
-    description='Objects and patterns for working with processes in Python using the multiprocessing library'
+    url='https://github.com/borgstrom/offspring',
+    description='Objects and patterns for working with processes in Python using the multiprocessing library',
+    long_description=open('README.rst').read(),
 )
