@@ -1,7 +1,6 @@
 import atexit
 import logging
 import multiprocessing
-import os
 import signal
 import sys
 import time
@@ -85,6 +84,7 @@ class Subprocess(object):
 
     def wait(self):
         self.process.join()
+
 
 atexit.register(Subprocess.atexit)
 

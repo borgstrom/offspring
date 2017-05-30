@@ -1,4 +1,5 @@
 import multiprocessing
+import os
 import time
 
 try:
@@ -43,11 +44,27 @@ def test_terminate_on_shutdown():
         def run(self):
             time.sleep(0.5)
 
-
     proc = MyProcess()
     start = time.time()
     proc.shutdown()
     assert time.time() - start >= 0.5
+
+
+def test_atexit():
+    class MyProcess(Subprocess):
+        WAIT_FOR_CHILD = True
+        def run(self):
+            time.sleep(0.5)
+
+
+    proc = MyProcess()
+    assert proc.process.is_alive()
+
+    # we can't really simulate atexit (and we trust that the python tests ensure atexit works)
+    # so we just call our class method directly and ensure it shuts down our process
+    Subprocess.atexit()
+
+    assert not proc.process.is_alive()
 
 
 def test_loop():
@@ -59,13 +76,13 @@ def test_loop():
 
         def loop(self):
             self.counter += 1
-            self.q.put(self.counter)
+            self.q.put_nowait(self.counter)
             if self.counter > 3:
                 return False
             return 0.1 * self.counter
 
     q = multiprocessing.Queue()
-    loop = MyLoop(q)
+    MyLoop(q)
     assert(q.get()) == 1
 
     with pytest.raises(Empty):
@@ -82,3 +99,35 @@ def test_loop():
         q.get(block=True, timeout=0.2)
 
     assert(q.get()) == 4
+
+
+def test_loop_sigterm():
+    class MyLoop(SubprocessLoop):
+        def __init__(self, q):
+            self.counter = 0
+            self.q = q
+            self.start()
+
+        def loop(self):
+            self.counter += 1
+            self.q.put_nowait(self.counter)
+            return 0.1
+
+    # start the loop and give it 150ms, which should produce two items on the queue
+    q = multiprocessing.Queue()
+    loop = MyLoop(q)
+    time.sleep(0.15)
+    os.kill(loop.process.pid, 15)
+    assert(q.get()) == 1
+    assert(q.get()) == 2
+
+    # after that the queue should be empty
+    with pytest.raises(Empty):
+        q.get(block=True, timeout=0.01)
+
+    # sleep for a bit and make sure nothing else ends up in the queue
+    time.sleep(0.25)
+    with pytest.raises(Empty):
+        q.get(block=True, timeout=0.01)
+
+    assert not loop.process.is_alive()

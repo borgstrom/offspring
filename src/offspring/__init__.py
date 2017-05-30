@@ -1,1 +1,1 @@
-from .process import Subprocess, SubprocessLoop
+from .process import Subprocess, SubprocessLoop  # noqa
