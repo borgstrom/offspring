@@ -1,15 +1,9 @@
 from setuptools import setup, find_packages
 
-with open('VERSION') as version_fd:
-    version = version_fd.read().strip()
-
-install_requires = [
-]
-
 setup(
     name='offspring',
-    version=version,
-    install_requires=install_requires,
+    version='0.1.1',
+    install_requires=[],
     packages=find_packages('src'),
     package_dir={'': 'src'},
     author='Evan Borgstrom',

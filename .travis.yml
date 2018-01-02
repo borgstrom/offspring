@@ -12,12 +12,22 @@ python:
   - pypy
 
 install:
-  - pip install --upgrade codecov pytest pytest-mock pytest-cov flake8
+  - pip install --upgrade pytest pytest-mock pytest-cov flake8
   - pip install -e .
 
 script:
+  - if [ -z "$(git diff origin/master setup.py | grep '\+.*version=')" ]; then echo "Bump version in setup.py!"; exit 1; fi
   - flake8 src/ tests/
   - py.test -v --cov=./src tests/
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+deploy:
+  provider: pypi
+  user: borgstrom
+  password:
+    secure: "HG0gmyQUrpeOll3eBkegc76JqLjzNvVTUlDvVsBCmm9sc/GoVEvFy6Gnkixp2/kRIyrytNva7v+D5wGRIvnyWLiMlcfzk46vgNczY05m/9WPw/8Ivmrle+CFoDQbUWqnyBmzBA+W8NU4//uYlwgi+9HMzUZvIk+Nc+1tVg5U28hYinHiFqF9nmwih4/vucBWu3/I3sBByprzy7RvpnBx5LsBFQHTIHLQiuTgw4iw+6cYX+SP4tjGnzaMD/qAHM9MMRrkrym1/FVlY8VBf9tZCu9B6fG5GZk7lAZypz7WjBSvDR1gnun3A4UE5uggHP78eryeR2ZELa8WuVSiIN3uFEGVBAmnDENhVAW9k0fUOVEoS4Z218gUKwK43Gh+YcMAH8SITmDuZG8kGyeh5N6RngWnmPkfLWk/D85Yex1CGSH2CLcR+SIVBCpNpQLD8MmdJUpZOvUSXR4eypBn1YChcJQjYyXIP7FDpxWKKq9hwEOnTDgr5YaGpvo1IfCdRKpL7tPh1iW/h03+4Gvw9U86Ugz2n+RLF2wjgRCpitGmEAlbZQ87nx9js3N/qT2OxLWIBUsw8eXGRReuptOhCCGt0zzXoResZjvZvM2PofvTaAN+w2mEiFizQWm9f6eBChl8RpVQXgPKUmGvLuJxt5NEfmZMsF1h2UwvpCSu+Nn6kD0="
+  on:
+    branch: master
+  distributions: "sdist bdist_wheel"

@@ -33,13 +33,13 @@ Run something once
 
 
     class MyTask(Subprocess):
-        def __init__(self, arg1):
-            # this is run in the parent process and is used to prepare your object
-            self.arg = arg
-            self.start()
+        def init(self, arg1):
+            # This is run in the parent process and is used to prepare your object.
+            # It receives whatever arguments were supplied to the constructor.
+            self.arg1 = arg1
 
         def run(self):
-            # this will be run in the child process and completes your work
+            # This will be run in the child process and completes your work.
             # ...
 
 
@@ -55,20 +55,22 @@ Run in a loop
 
 
     class MyTask(SubprocessLoop):
-        def __init__(self, arg1):
-            # this is run in the parent process and is used to prepare your object
-            self.arg = arg
-            self.start()
+        def init(self, arg1):
+            # This is the same as init for Subprocess.
+            self.arg1 = arg1
 
         def begin(self):
-            # called at the start of the loop in your child process
+            # Called before the start of the loop in your child process.
+            # ...
 
         def loop(self):
-            # called each loop iteration in your your child process
-            # it should return a sleep duration until the next loop, or False to stop the loop
+            # Called each loop iteration in your your child process.
+            # It can return a sleep duration until the next loop, or False to stop the loop.
+            # ...
 
         def end(self):
-            # called at the end of the loop in your child process
+            # Called after the end of the loop, before termination in your child process.
+            # ...
 
 
     MyTask('this is arg1').wait()
@@ -77,24 +79,38 @@ Run in a loop
 Implementation details
 ----------------------
 
+``.init(*args, **kwargs)``
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Called when an instance of your class is created.  It receives the same arguments as the ``__init__`` method, so you are
+encouraged to explicitly define the arguments you expect.
+
+
+``.start()``
+~~~~~~~~~~~~
+
+Creates the subprocess.  This is automatically called unless you set ``EXPLICIT_START`` to ``True``.
+
+
+``.wait()``
+~~~~~~~~~~~
+
+If you need to wait for your child process you can call ``.wait`` on your ``Subprocess`` object.  This is just a
+shortcut to ``.join`` on the ``multiprocessing.Process`` object.
+
+
+``.shutdown()``
+~~~~~~~~~~~~~~~
+
+This will send a ``TERM`` signal to the child process, unless ``TERMINATE_ON_SHUTDOWN`` is ``False``, and then calls
+``.wait()`` to join the child process.  It is automatically called whenever the parent process exits via the ``atexit``
+module.
+
+
 ``.process``
 ~~~~~~~~~~~~
 
 Each ``Subprocess`` object has a ``.process`` attribute that is the ``multiprocessing.Process`` object.
-
-
-``.start``
-~~~~~~~~~~
-
-Creates the subprocess.  If you do not customize your ``__init__`` method then you do not need to explicitly call
-``.start``.  If you do remember to call ``.start`` at the end of it.
-
-
-``.wait``
-~~~~~~~~~
-
-If you need to wait for your child process you can call ``.wait`` on your ``Subprocess`` object.  This is just a
-shortcut to ``.join`` on the ``multiprocessing.Process`` object.
 
 
 ``WAIT_FOR_CHILD``
@@ -140,3 +156,26 @@ terminated before being joined.  This means that the parent will block until the
             time.sleep(2)
 
     MyTask()
+
+
+``EXPLICIT_START``
+~~~~~~~~~~~~~~~~~~
+
+Defaults to ``False``.
+
+If set to ``True`` then when you instantiate an object you must explicitly call ``.start()`` before the child process
+will be spawned.
+
+.. code-block:: python
+
+    class MyTask(Subprocess):
+        EXPLICIT_START = True
+
+        def run(self):
+            print("Running!")
+
+
+    task = MyTask()
+    # Do some other work
+    task.start()
+    # Running! is now printed
