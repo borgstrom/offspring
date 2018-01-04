@@ -16,7 +16,7 @@ install:
   - pip install -e .
 
 script:
-  - if [ -z "$(git diff origin/master setup.py | grep '\+.*version=')" ]; then echo "Bump version in setup.py!"; exit 1; fi
+  - if [ "${TRAVIS_PULL_REQUEST}" == "true" ] && [ -z "$(git diff origin/master setup.py | grep '\+.*version=')" ]; then echo "Bump version in setup.py!"; exit 1; fi
   - flake8 src/ tests/
   - py.test -v --cov=./src tests/
 
